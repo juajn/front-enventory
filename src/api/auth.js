@@ -1,20 +1,23 @@
+// src/services/auth.js
 import api from "./axios";
 
 export const login = async (email, password) => {
-  const form = new URLSearchParams();
-  form.append("username", email.trim());
-  form.append("password", password);
+  const formData = new URLSearchParams();
+  formData.append("username", email.trim());
+  formData.append("password", password);
 
   try {
-    const { data } = await api.post("/auth/token", form, {
+    const { data } = await api.post("/auth/token", formData, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
 
-    // Guardar token con ambos nombres para compatibilidad
-    localStorage.setItem("access_token", data.access_token);
-    localStorage.setItem("token", data.access_token); // También como 'token'
+    // Guardar token si decides usar autenticación más adelante
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("token", data.access_token);
+    }
     
     return data;
   } catch (error) {
@@ -24,18 +27,14 @@ export const login = async (email, password) => {
 };
 
 export const register = async (user) => {
-  const { data } = await api.post("/auth/register", user, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
+  const { data } = await api.post("/auth/register", user);
   return data;
 };
 
+// Estas funciones pueden ser innecesarias si no usas autenticación
 export const getProfile = async () => {
   try {
-    const { data } = await api.get("/users/me");
+    const { data } = await api.get("/auth/me");
     return data;
   } catch (error) {
     console.error("Error obteniendo perfil:", error);
@@ -56,4 +55,15 @@ export const isAuthenticated = () => {
 
 export const getToken = () => {
   return localStorage.getItem("access_token") || localStorage.getItem("token");
+};
+
+// Función para validar si el backend está funcionando
+export const checkApiHealth = async () => {
+  try {
+    const response = await api.get("/");
+    return response.status === 200;
+  } catch (error) {
+    console.error("API no responde:", error);
+    return false;
+  }
 };

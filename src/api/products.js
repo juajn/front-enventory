@@ -1,49 +1,65 @@
-// src/api/products.js
+// src/services/products.js
 import api from "./axios";
 
-export const fetchProducts = async () => {
+export const fetchProducts = async (skip = 0, limit = 100) => {
   try {
-    const { data } = await api.get("/products");
-    return data;
-  } catch (err) {
-    console.error("fetchProducts error:", err.response?.status, err.response?.data || err.message);
-    throw err;
-  }
-};
-
-export const createProduct = async (payload) => {
-  try {
-    // asegúrate de que payload tiene las 4 llaves: name, sku, price, description
-    console.log("createProduct payload:", payload);
-    const { data } = await api.post("/products", payload, {
-      headers: { "Content-Type": "application/json" }, // opcional: axios lo pone automáticamente
+    const { data } = await api.get("/products/", {
+      params: { skip, limit }
     });
-    console.log("createProduct response:", data);
     return data;
-  } catch (err) {
-    console.error("createProduct error:", err.response?.status, err.response?.data || err.message);
-    // lanzar error con información legible
-    const message = err.response?.data || err.message || "Error desconocido";
-    throw new Error(JSON.stringify({ status: err.response?.status, body: message }));
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    throw error;
   }
 };
 
-export const updateProduct = async (id, payload) => {
+export const createProduct = async (productData) => {
   try {
-    const { data } = await api.put(`/products/${id}`, payload);
+    const { data } = await api.post("/products/", productData);
     return data;
-  } catch (err) {
-    console.error("updateProduct error:", err.response?.status, err.response?.data || err.message);
-    throw err;
+  } catch (error) {
+    console.error("Error creating product:", error);
+    throw error;
   }
 };
 
-export const deleteProduct = async (id) => {
+export const getProduct = async (productId) => {
   try {
-    const { data } = await api.delete(`/products/${id}`);
+    const { data } = await api.get(`/products/${productId}`);
     return data;
-  } catch (err) {
-    console.error("deleteProduct error:", err.response?.status, err.response?.data || err.message);
-    throw err;
+  } catch (error) {
+    console.error("Error getting product:", error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (productId, productData) => {
+  try {
+    const { data } = await api.put(`/products/${productId}`, productData);
+    return data;
+  } catch (error) {
+    console.error("Error updating product:", error);
+    throw error;
+  }
+};
+
+export const deleteProduct = async (productId) => {
+  try {
+    const { data } = await api.delete(`/products/${productId}`);
+    return data;
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    throw error;
+  }
+};
+
+// Buscar producto por SKU
+export const searchProductBySKU = async (sku) => {
+  try {
+    const products = await fetchProducts();
+    return products.find(product => product.sku === sku);
+  } catch (error) {
+    console.error("Error searching product:", error);
+    throw error;
   }
 };
